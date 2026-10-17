@@ -17,6 +17,7 @@ OpenClaw 网关的 Rust 重写实现，协议对齐上游 `openclaw/openclaw` �
 | 事件总线 | broadcast + 全局 seq，每连接一个写入泵（响应与事件共用 FIFO，避免互相饿死） |
 | HTTP 面 | `/health` `/healthz` `/ready` `/readyz` `/startup` `/startupz`、`/v1/models`、`/v1/chat/completions`（流式与非流式） |
 | RPC 方法 | `health` `status` `config.get` `sessions.list/create/get/history/delete` `chat.send` `chat.abort` |
+| Flutter 客户端 | `apps/flutter_app`：连接向导、会话列表、流式聊天、停止生成，一套代码覆盖 ohos / Android / iOS |
 
 ## 未实现（后续路线）
 
@@ -66,6 +67,29 @@ export OPENCLAW_RUST_MODEL=gpt-4o-mini
 | `OPENCLAW_RUST_MODEL` | `gpt-4o-mini` | 模型名 |
 | `OPENCLAW_RUST_MAX_HISTORY` | `30` | 单轮携带的历史条数 |
 | `OPENCLAW_RUST_MAX_PAYLOAD` | `4194304` | 单帧上限（hello 中通告） |
+
+## Flutter App（`apps/flutter_app`）
+
+App 端使用**支持 OpenHarmony 的 Flutter 分支**（`CPF-Flutter/flutter_flutter`，本地 FVM 版本 `br_3.27.4-ohos-1.0.4` = Flutter 3.27.5-ohos-1.0.4 / Dart 3.6.2），一套代码覆盖 ohos / Android / iOS。传输层直接用 `dart:io` WebSocket，**零第三方依赖**。
+
+已实现：连接向导（地址 + token）、会话列表与新建、流式回复渲染、停止生成、历史加载、网关信息（协议版本 / 方法数 / 心跳）。
+
+```bash
+cd apps/flutter_app
+fvm use br_3.27.4-ohos-1.0.4   # 工程内已提供 .fvmrc
+fvm flutter pub get
+fvm flutter analyze
+fvm flutter test
+
+# 与真实网关联调（需先启动 Rust 网关）
+OPENCLAW_TEST_ENDPOINT=ws://127.0.0.1:18789/ OPENCLAW_TEST_TOKEN=dev-token \
+  fvm flutter test test/live_gateway_test.dart
+
+# 鸿蒙打包
+fvm flutter build hap
+```
+
+HAP 产物：`ohos/entry/build/default/outputs/default/entry-default-unsigned.hap`。已实际执行 `build hap` 通过（Hvigor `assembleHap`），但安装到真机前需在 DevEco Studio 中配置调试签名：`File → Project Structure → Signing Configs → 勾选 Automatically generate signature`。
 
 ## 协议示例
 
