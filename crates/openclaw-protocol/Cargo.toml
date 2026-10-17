@@ -1,0 +1,12 @@
+[package]
+name = "openclaw-protocol"
+description = "Gateway wire protocol types (req/res/event frames, connect handshake, snapshots)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
